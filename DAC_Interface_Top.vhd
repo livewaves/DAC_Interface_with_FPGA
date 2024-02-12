@@ -63,11 +63,11 @@ begin
 			Clock                   => Clock,                  
 			Force_CS                => SPI_Force_CS,               
 			Send                    => SPI_Send,                   
-			Command_Type 				=> SPI_Command_Type,
-			Data_In					=> SPI_Data_In,   
+			Command_Type 		=> SPI_Command_Type,
+			Data_In			=> SPI_Data_In,   
 			Busy                    => SPI_Busy,                   
 			Data_Out_Valid          => open,         
-			Data_Out						=> open, 
+			Data_Out		=> open, 
 			MISO                    => SPI_MISO,                  
 			MOSI                    => SPI_MOSI,                   
 			CS                      => SPI_CS,                     
@@ -75,22 +75,22 @@ begin
 		);
 
  
-	CS										<=	CS_Int;
-	MOSI										<=	MOSI_Int;
-	SCK										<=	SCK_Int;
-	LDAC										<=	LDAC_Int;	
+	CS								<=	CS_Int;
+	MOSI								<=	MOSI_Int;
+	SCK								<=	SCK_Int;
+	LDAC								<=	LDAC_Int;	
 
-	Ready_For_Data									<=	Ready_For_Data_Int;			
-	Busy										<=	Busy_Int or Sampling_Mode_Int;							
+	Ready_For_Data							<=	Ready_For_Data_Int;			
+	Busy								<=	Busy_Int or Sampling_Mode_Int;							
 
-	CS_Int										<=	SPI_CS;
-	MOSI_Int									<=	SPI_MOSI;
-	SCK_Int										<=	SPI_SCK;
-	LDAC_Int									<=	'0';	-- always 0 to immediately latch the serial register
+	CS_Int								<=	SPI_CS;
+	MOSI_Int							<=	SPI_MOSI;
+	SCK_Int								<=	SPI_SCK;
+	LDAC_Int							<=	'0';	-- always 0 to immediately latch the serial register
 	
-	SPI_Force_CS									<=	'1';
-	SPI_Command_Type								<=	to_unsigned(1,2);
-	
+	SPI_Force_CS							<=	'1';
+	SPI_Command_Type						<=	to_unsigned(1,2);
+
 	process(Clock)
 	begin
 	
@@ -106,33 +106,33 @@ begin
 			Ready_For_Data_Int				<=	'0';
 			
 			if (Sampling_Wait_Counter < to_unsigned(7,3)) then
-				Sampling_Wait_Counter	<=	Sampling_Wait_Counter + 1;		
+				Sampling_Wait_Counter			<=	Sampling_Wait_Counter + 1;		
 			end if;
 			--obersving the module to know when SPI busy is finished 
 			if (SPI_Busy = '0' and SPI_Busy_Prev = '1') then
-				Busy_Int						<=	'0';			
+				Busy_Int				<=	'0';			
 			end if;
 			-- send data in every Sampling_Period time.
 			if (Sampling_Period_Counter = to_unsigned(Sampling_Period-1,20)) then
 
-				Ready_For_Data_Int		<=	Sampling_Mode_Int;
-				Sampling_Period_Counter	<=	(others=>'0');
-				Sampling_Wait_Counter	<=	(others=>'0');
+				Ready_For_Data_Int			<=	Sampling_Mode_Int;
+				Sampling_Period_Counter			<=	(others=>'0');
+				Sampling_Wait_Counter			<=	(others=>'0');
 
 			end if;
 			
 			if (Sampling_Wait_Counter = to_unsigned(4,3)) then
 
-				SPI_Send					<=	Sampling_Mode_Int;
-				SPI_Data_In					<=	resize(DAC_Data_In_Int,32);
+				SPI_Send				<=	Sampling_Mode_Int;
+				SPI_Data_In				<=	resize(DAC_Data_In_Int,32);
 						
 			end if;
 			-- rising edge WR_Data and free module with busy = 0 to send in sampling mode  = 0
 			if (WR_Data_Int = '1' and WR_Data_Prev = '0' and Busy_Int = '0') then
 			
-				Busy_Int					<=	'1';
-				SPI_Send					<=	'1';
-				SPI_Data_In					<=	resize(DAC_Data_In_Int,32);
+				Busy_Int				<=	'1';
+				SPI_Send				<=	'1';
+				SPI_Data_In				<=	resize(DAC_Data_In_Int,32);
 			
 			end if;					
 								
